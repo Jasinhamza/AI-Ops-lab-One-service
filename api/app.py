@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 WHISPER_URL = os.getenv("WHISPER_URL", "http://localhost:9000")
 
+API_KEY = os.getenv("API_KEY")
 
 @app.get("/healthz")
 def healthz():
@@ -12,7 +13,11 @@ def healthz():
 
 
 @app.post("/transcribe")
+
 def transcribe():
+    if API_KEY and request.headers.get("X-API-Key") != API_KEY:
+        return jsonify(error="unauthorized"), 401
+
     if "file" not in request.files:
         return jsonify(error="send a file in the 'file' field"), 400
 

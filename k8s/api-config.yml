@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: ai-lab
+data:
+  WHISPER_URL: "http://whisper:9000"

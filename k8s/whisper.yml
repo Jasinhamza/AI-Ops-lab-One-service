@@ -1,48 +1,49 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: whisper
-  namespace: ai-lab
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: whisper
-  template:
+apiVersion: apps/v1          # which version of the rules this object follows
+kind: Deployment             # what type of object: a Deployment (a manager of pods)
+metadata:                    # facts ABOUT the object: its name tag, not its behaviour
+  name: whisper              #   the Deployment's own name
+  namespace: ai-lab          #   which section of the cluster it lives in
+spec:                        # the desired state: "this is how it should look"
+  replicas: 1                #   how many identical copies (pods) to keep running
+  selector:                  #   how this Deployment recognises ITS pods...
+    matchLabels:             #   ...by finding pods that carry these labels:
+      app: whisper           #   any pod labelled app=whisper is "mine"
+  template:                  #   the blueprint for every pod it creates
     metadata:
-      labels:
-        app: whisper
-    spec:
-      containers:
-        - name: whisper
-          image: onerahmet/openai-whisper-asr-webservice:latest
-          imagePullPolicy: IfNotPresent
-          env:
+      labels:                #   the label stuck on each new pod...
+        app: whisper         #   ...which matches the selector above
+    spec:                    #   what goes inside each pod
+      containers:            #   the list of containers in the pod
+        - name: whisper      #     the container's name inside the pod
+          image: onerahmet/openai-whisper-asr-webservice:latest   # which image to run
+          imagePullPolicy: IfNotPresent   # reuse an image already on the node
+          env:                            # environment variables for the container
             - name: ASR_MODEL
-              value: tiny
+              value: tiny                 # use the smallest Whisper model
           ports:
-            - containerPort: 9000
+            - containerPort: 9000         # documents the port the app listens on
           resources:
-            requests:
+            requests:                     # GUARANTEED: the scheduler reserves this
               memory: "512Mi"
               cpu: "250m"
-            limits:
+            limits:                       # MAXIMUM: more memory than this = killed
               memory: "1536Mi"
-          startupProbe:
-            httpGet:
-              path: /docs
-              port: 9000
-            periodSeconds: 5
-            failureThreshold: 30
----
+              
+          startupProbe:                   # "is it done starting yet?"
+            httpGet:                      #   check by sending an HTTP request...
+              path: /docs                 #   ...to this path...
+              port: 9000                  #   ...on this port
+            periodSeconds: 5              #   ask every 5 seconds
+            failureThreshold: 30          #   allow 30 failures (2.5 min) before giving up
+---                                       # separator: a second object starts here
 apiVersion: v1
-kind: Service
+kind: Service                # a Service: a stable name and address for pods
 metadata:
-  name: whisper
+  name: whisper              # this name becomes the DNS name: http://whisper
   namespace: ai-lab
 spec:
-  selector:
-    app: whisper
+  selector:                  # which pods to send traffic to...
+    app: whisper             # ...pods labelled app=whisper
   ports:
-    - port: 9000
-      targetPort: 9000
+    - port: 9000             # the port callers use on the Service
+      targetPort: 9000       # the port on the pod that traffic goes to
