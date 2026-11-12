@@ -24,11 +24,12 @@ spec:                        # the desired state: "this is how it should look"
             - containerPort: 9000         # documents the port the app listens on
           resources:
             requests:                     # GUARANTEED: the scheduler reserves this
-              memory: "512Mi"
-              cpu: "250m"
-            limits:                       # MAXIMUM: more memory than this = killed
+              memory: "100Mi"
+              cpu: "500m"
+            limits:                        # MAXIMUM: more memory than this = killed
               memory: "1536Mi"
-              
+            
+
           startupProbe:                   # "is it done starting yet?"
             httpGet:                      #   check by sending an HTTP request...
               path: /docs                 #   ...to this path...
