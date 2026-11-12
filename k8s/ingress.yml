@@ -1,30 +1,24 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: networking.k8s.io/v1   # which rule set this object follows; Ingress
+                                   # lives in the "networking" group, version 1
+kind: Ingress                      # the object type: a routing rulebook
 metadata:
-  name: api
-  namespace: ai-lab
-spec:
-  ingressClassName: traefik
-  rules:
-    - host: api.ailab.localhost
+  name: api                        # the rulebook's own name (for kubectl, not routing)
+  namespace: ai-lab                # which section of the cluster it lives in
+spec:                              # the desired state: the rules themselves
+  ingressClassName: traefik        # WHICH doorman should follow this rulebook.
+                                   # A cluster can run several controllers;
+                                   # this says "Traefik, this one's yours"
+  rules:                           # the list of routing rules (here, just one)
+    - host: api.ailab.localhost    # rule matches only requests whose Host
+                                   # header says this name. Another host = no match
       http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
+        paths:                     # within that host, route by URL path
+          - path: /                # match paths starting with "/"...
+            pathType: Prefix       # ..."Prefix" = / and everything under it,
+                                   # so /transcribe and /healthz both match
+            backend:               # where matching traffic goes:
               service:
-                name: api
+                name: api          # ...to the Service called "api"...
                 port:
-                  number: 80
----
-apiVersion: v1
-kind: Service                # a Service: a stable name and address for pods
-metadata:
-  name: api              # this name becomes the DNS name: http://whisper
-  namespace: ai-lab
-spec:
-  selector:                  # which pods to send traffic to...
-    app: api             # ...pods labelled app=whisper
-  ports:
-    - port: 80             # the port callers use on the Service
-      targetPort: 5000       # the port on the pod that traffic goes to
+                  number: 80       # ...on the SERVICE's port (80), which the
+                                   # Service translates to targetPort 5000

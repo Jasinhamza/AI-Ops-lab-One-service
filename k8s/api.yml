@@ -38,3 +38,15 @@ spec:
               path: /healthz
               port: 5000
             periodSeconds: 10
+---        
+apiVersion: v1
+kind: Service                # a Service: a stable name and address for pods
+metadata:
+  name: api              # this name becomes the DNS name: http://whisper
+  namespace: ai-lab
+spec:
+  selector:                  # which pods to send traffic to...
+    app: api           # ...pods labelled app=whisper
+  ports:
+    - port: 80             # the port callers use on the Service
+      targetPort: 5000       # the port on the pod that traffic goes to
