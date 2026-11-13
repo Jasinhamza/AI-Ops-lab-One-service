@@ -1,0 +1,41 @@
+# Same settings as the original --set flags
+prometheus-pushgateway:
+  enabled: false
+prometheus-node-exporter:
+  enabled: false
+kube-state-metrics:
+  enabled: false
+alertmanager:
+  persistence:
+    enabled: false
+
+server:
+  persistentVolume:
+    enabled: false
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - prometheus.ailab.localhost
+
+# Alert rules
+serverFiles:
+  alerting_rules.yml:
+    groups:
+      - name: ai-lab
+        rules:
+          - alert: TranscriptionCheckFailing
+            expr: time() - synthetic_check_last_success_timestamp_seconds > 180
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Synthetic transcription check has not passed for 3+ minutes"
+
+          - alert: SyntheticCheckMissing
+            expr: absent(synthetic_check_success)
+            for: 3m
+            labels:
+              severity: warning
+            annotations:
+              summary: "No data from the prober: the monitor itself is down"

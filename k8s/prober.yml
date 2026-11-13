@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prober
+  namespace: ai-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prober
+  template:
+    metadata:
+      labels:
+        app: prober
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: prober
+          image: prober:0.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: API_URL
+              value: "http://api/transcribe"
+          envFrom:
+            - secretRef:
+                name: api-secret
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 20m
+            limits:
+              memory: 128Mi
